@@ -10,17 +10,30 @@ viewerImage.alt = "";
 viewerCaption.id = "image-viewer-caption";
 closeViewerButton.className = "image-lightbox-close";
 closeViewerButton.type = "button";
-closeViewerButton.textContent = "Close";
+closeViewerButton.textContent = "X";
 closeViewerButton.setAttribute("aria-label", "Close expanded photo");
+closeViewerButton.title = "Close photo";
 imageViewer.setAttribute("aria-describedby", viewerCaption.id);
 imageViewer.append(closeViewerButton, viewerImage, viewerCaption);
 document.body.append(imageViewer);
 
-function showImage(image) {
+function showImage(image, savedScrollPosition) {
+    const scrollPosition = savedScrollPosition || {
+        left: window.scrollX,
+        top: window.scrollY
+    };
+
     viewerImage.src = image.currentSrc || image.src;
     viewerImage.alt = image.alt;
     viewerCaption.textContent = image.alt;
     imageViewer.showModal();
+    closeViewerButton.focus({ preventScroll: true });
+
+    const root = document.documentElement;
+    const previousScrollBehavior = root.style.scrollBehavior;
+    root.style.scrollBehavior = "auto";
+    window.scrollTo(scrollPosition.left, scrollPosition.top);
+    root.style.scrollBehavior = previousScrollBehavior;
 }
 
 closeViewerButton.addEventListener("click", () => imageViewer.close());
@@ -57,13 +70,25 @@ contentImages.forEach((image) => {
     image.setAttribute("role", "button");
     image.setAttribute("aria-label", `View larger image: ${image.alt || "photo"}`);
 
+    let pointerScrollPosition = null;
+    image.addEventListener("pointerdown", () => {
+        pointerScrollPosition = {
+            left: window.scrollX,
+            top: window.scrollY
+        };
+    }, { passive: true });
+
     if (revealObserver) {
         revealObserver.observe(revealTarget);
     } else {
         revealTarget.classList.add("is-visible");
     }
 
-    image.addEventListener("click", () => showImage(image));
+    image.addEventListener("click", () => {
+        const savedScrollPosition = pointerScrollPosition;
+        pointerScrollPosition = null;
+        showImage(image, savedScrollPosition);
+    });
     image.addEventListener("keydown", (event) => {
         if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();

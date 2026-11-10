@@ -846,13 +846,16 @@ h3 {
     position: absolute;
     top: 0.65rem;
     right: 0.65rem;
-    min-height: 2.75rem;
-    padding: 0.5rem 0.8rem;
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
+    padding: 0;
     border: 1px solid rgb(255 255 255 / 40%);
-    border-radius: 0.3rem;
+    border-radius: 50%;
     background: transparent;
     color: var(--white);
-    font: inherit;
+    font: 1.35rem/1 Arial, Helvetica, sans-serif;
     cursor: pointer;
 }
 
