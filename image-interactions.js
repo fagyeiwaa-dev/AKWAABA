@@ -1,11 +1,17 @@
 const contentImages = document.querySelectorAll("main img");
-const imageViewer = document.createElement("dialog");
+const imageViewer = document.createElement("div");
+const viewerPanel = document.createElement("div");
 const viewerImage = document.createElement("img");
 const viewerCaption = document.createElement("p");
 const closeViewerButton = document.createElement("button");
 
 imageViewer.className = "image-lightbox";
+imageViewer.setAttribute("role", "dialog");
+imageViewer.setAttribute("aria-modal", "true");
 imageViewer.setAttribute("aria-label", "Expanded photo");
+imageViewer.tabIndex = -1;
+imageViewer.hidden = true;
+viewerPanel.className = "image-lightbox-panel";
 viewerImage.alt = "";
 viewerCaption.id = "image-viewer-caption";
 closeViewerButton.className = "image-lightbox-close";
@@ -14,41 +20,47 @@ closeViewerButton.textContent = "X";
 closeViewerButton.setAttribute("aria-label", "Close expanded photo");
 closeViewerButton.title = "Close photo";
 imageViewer.setAttribute("aria-describedby", viewerCaption.id);
-imageViewer.append(closeViewerButton, viewerImage, viewerCaption);
+viewerPanel.append(closeViewerButton, viewerImage, viewerCaption);
+imageViewer.append(viewerPanel);
 document.body.append(imageViewer);
 
-function showImage(image, savedScrollPosition) {
-    const scrollPosition = savedScrollPosition || {
-        left: window.scrollX,
-        top: window.scrollY
-    };
+let activeImage = null;
 
+function showImage(image) {
+    activeImage = image;
     viewerImage.src = image.currentSrc || image.src;
     viewerImage.alt = image.alt;
     viewerCaption.textContent = image.alt;
-    imageViewer.showModal();
+    imageViewer.hidden = false;
+    image.setAttribute("aria-expanded", "true");
     closeViewerButton.focus({ preventScroll: true });
-
-    const root = document.documentElement;
-    const previousScrollBehavior = root.style.scrollBehavior;
-    root.style.scrollBehavior = "auto";
-    window.scrollTo(scrollPosition.left, scrollPosition.top);
-    root.style.scrollBehavior = previousScrollBehavior;
 }
 
-closeViewerButton.addEventListener("click", () => imageViewer.close());
-imageViewer.addEventListener("cancel", (event) => {
-    event.preventDefault();
-    imageViewer.close();
-});
+function closeImageViewer() {
+    if (imageViewer.hidden) return;
+
+    imageViewer.hidden = true;
+    if (activeImage) {
+        activeImage.setAttribute("aria-expanded", "false");
+        activeImage.focus({ preventScroll: true });
+        activeImage = null;
+    }
+}
+
+closeViewerButton.addEventListener("click", closeImageViewer);
 document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && imageViewer.open) {
+    if (imageViewer.hidden) return;
+
+    if (event.key === "Escape") {
         event.preventDefault();
-        imageViewer.close();
+        closeImageViewer();
+    } else if (event.key === "Tab") {
+        event.preventDefault();
+        closeViewerButton.focus({ preventScroll: true });
     }
 }, true);
 imageViewer.addEventListener("click", (event) => {
-    if (event.target === imageViewer) imageViewer.close();
+    if (event.target === imageViewer) closeImageViewer();
 });
 
 const revealObserver = "IntersectionObserver" in window
@@ -70,25 +82,14 @@ contentImages.forEach((image) => {
     image.setAttribute("role", "button");
     image.setAttribute("aria-label", `View larger image: ${image.alt || "photo"}`);
 
-    let pointerScrollPosition = null;
-    image.addEventListener("pointerdown", () => {
-        pointerScrollPosition = {
-            left: window.scrollX,
-            top: window.scrollY
-        };
-    }, { passive: true });
-
     if (revealObserver) {
         revealObserver.observe(revealTarget);
     } else {
         revealTarget.classList.add("is-visible");
     }
 
-    image.addEventListener("click", () => {
-        const savedScrollPosition = pointerScrollPosition;
-        pointerScrollPosition = null;
-        showImage(image, savedScrollPosition);
-    });
+    image.setAttribute("aria-expanded", "false");
+    image.addEventListener("click", () => showImage(image));
     image.addEventListener("keydown", (event) => {
         if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
