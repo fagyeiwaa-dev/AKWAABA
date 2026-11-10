@@ -39,9 +39,12 @@
         <section class="hero" id="home">
             <div class="container hero-content">
                 <p class="eyebrow">A journey through West Africa</p>
-                <h1>Discover the Beauty of Ghana</h1>
-                <p class="hero-intro">Explore historic landmarks, green landscapes, vibrant traditions, and the many flavors of Ghana.</p>
-                <a class="button" href="culture.html">Explore Culture &amp; Attractions</a>
+                <h1>Experience Ghana Beyond the Postcard</h1>
+                <p class="hero-intro">From golden coastlines and rainforest trails to lively markets, heritage landmarks, and unforgettable food, Ghana invites you into a story you will carry with you.</p>
+                <div class="hero-actions">
+                    <a class="button" href="culture.html">Explore Culture &amp; Attractions</a>
+                    <a class="button button-secondary" href="#contact">Plan My Trip</a>
+                </div>
             </div>
         </section>
 
@@ -230,9 +233,9 @@
                 <div>
                     <p class="eyebrow">Get in touch</p>
                     <h2>Plan your Ghana journey</h2>
-                    <p>Have a question or an idea for your trip? Use this form layout as a starting point.</p>
+                    <p>Share your travel ideas, interests, or questions and we will help you shape the right experience for your visit.</p>
                 </div>
-                <form class="contact-form" aria-describedby="form-note">
+                <form class="contact-form" id="travel-form" aria-describedby="form-note">
                     <label for="visitor-name">Your name</label>
                     <input id="visitor-name" name="name" type="text" autocomplete="name" required>
 
@@ -242,12 +245,60 @@
                     <label for="visitor-message">Your message</label>
                     <textarea id="visitor-message" name="message" rows="5" required></textarea>
 
-                    <p id="form-note" class="form-note">This form is not connected yet, so it will not send or store your message.</p>
-                    <button class="button" type="button" disabled>Inquiry form coming soon</button>
+                    <p id="form-note" class="form-note">This form opens your email app so you can send your message directly.</p>
+                    <button class="button" type="submit">Send inquiry</button>
+                    <p class="success-message" id="success-message" aria-live="polite"></p>
                 </form>
             </div>
         </section>
     </main>
+
+    <button class="back-to-top" type="button" aria-label="Back to top">↑</button>
+
+    <script>
+        const travelForm = document.getElementById('travel-form');
+        const successMessage = document.getElementById('success-message');
+
+        travelForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const name = document.getElementById('visitor-name').value.trim();
+            const email = document.getElementById('visitor-email').value.trim();
+            const message = document.getElementById('visitor-message').value.trim();
+
+            if (!name || !email || !message) {
+                successMessage.textContent = 'Please complete all fields before sending your message.';
+                successMessage.style.color = '#9a3d2a';
+                return;
+            }
+
+            const subject = encodeURIComponent('Ghana travel inquiry from ' + name);
+            const body = encodeURIComponent(
+                'Name: ' + name + '\n' +
+                'Email: ' + email + '\n\n' +
+                'Message:\n' + message
+            );
+
+            window.location.href = 'mailto:hello@exploreghana.com?subject=' + subject + '&body=' + body;
+            successMessage.textContent = 'Your email app is opening with your message.';
+            successMessage.style.color = '#1d5b42';
+            travelForm.reset();
+        });
+
+        const backToTopButton = document.querySelector('.back-to-top');
+
+        backToTopButton.addEventListener('click', function () {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        window.addEventListener('scroll', function () {
+            if (window.scrollY > 300) {
+                backToTopButton.classList.add('visible');
+            } else {
+                backToTopButton.classList.remove('visible');
+            }
+        });
+    </script>
 
     <footer class="site-footer">
         <div class="container footer-content">
